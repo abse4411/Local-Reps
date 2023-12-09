@@ -1,4 +1,5 @@
 import glob
+import json
 import os.path
 import shutil
 import subprocess
@@ -103,7 +104,7 @@ def do_injection(abs_path):
                 all_lines = f.readlines()
             for i, line in enumerate(all_lines):
                 code = line.strip()
-                print(code)
+                # print(code)
                 if code:
                     if code == inject_code:
                         new_lines = all_lines
@@ -129,6 +130,27 @@ def do_injection(abs_path):
                 pass
             raise e
 
+def do_launch_test(project):
+    str_id = uuid.uuid1().hex
+    json_file = os.path.join(os.path.abspath('.'), 'tmp.json')
+    code = project.launch('projz_inject_command', args=[json_file,
+                                           f'--uuid {str_id}',  '--test-only'], wait=True)
+    if code == 0:
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if data['ok']:
+                    return True
+        # except:
+        #     pass
+        finally:
+            try:
+                os.remove(json_file)
+                # pass
+            except:
+                pass
+    return False
+
 class Project:
 
     def __init__(self, project_path, executable_path, project_name):
@@ -141,7 +163,7 @@ class Project:
         # Put together the basic command line.
         cmd_line = [self.executable_path, os.path.join(self.project_path, f'{self.project_name}.py'),
                self.project_path, cmd, ' '.join(args)]
-        print(' '.join(cmd_line))
+        # print(' '.join(cmd_line))
         # return None
         p = subprocess.Popen(' '.join(cmd_line))
         if wait:
@@ -176,5 +198,6 @@ class Project:
 if __name__ == '__main__':
     p = Project.from_dir(r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc')
     print(uuid.uuid1().hex)
-    p.launch('projz_inject_command', args=[r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc\translation.json',
-                                           f'--uuid {uuid.uuid1().hex}', '--language chinese', '--all-strings', '--count'], wait=True)
+    print(do_launch_test(p))
+    # p.launch('projz_inject_command', args=[r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc\translation.json',
+    #                                        f'--uuid {uuid.uuid1().hex}', '--language chinese', '--all-strings', '--count'], wait=True)
