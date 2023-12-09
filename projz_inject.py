@@ -253,7 +253,6 @@ def projz_inject_command():
         filter = piglatin_filter # @ReservedAssignment
     else:
         filter = null_filter # @ReservedAssignment
-
     try:
         dialogue_items = []
         if not args.strings_only:
