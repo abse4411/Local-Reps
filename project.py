@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import uuid
 
-from util.file import exists_dir, file_name_ext, exists_file
+from util.file import exists_dir, file_name_ext, exists_file, default_read, default_write
 from util.os_info import is_windows, is_x64
 
 PYTHON_WIN64_EXE = [
@@ -47,12 +47,12 @@ RENPY_DIRS = [
 ]
 
 
-
 def check_renpy_dir(abs_path):
     assert exists_dir(abs_path), f'{abs_path} is not a dir!'
     for d in RENPY_DIRS:
         absd = os.path.join(abs_path, d)
         assert exists_dir(absd), f'The dir({d}) is required in {abs_path}!'
+
 
 def find_project_name(abs_path):
     py_files = [file_name_ext(f)[0] for f in glob.glob(os.path.join(abs_path, '*.py'))]
@@ -71,6 +71,8 @@ def find_project_name(abs_path):
             break
     assert project_name is not None, f'Coundn\'t find a entrypoint file in {abs_path}'
     return project_name
+
+
 def find_exe(abs_path):
     executable_path = None
     lib_path = os.path.join(abs_path, 'lib')
@@ -130,19 +132,50 @@ def do_injection(abs_path):
                 pass
             raise e
 
+
+def check_ok_json(file, uuid_str):
+    if exists_file(file):
+        with default_read(file) as f:
+            data = json.load(f)
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        if 'ok' in data and 'uuid' in data:
+            return data['ok'] is True and data['uuid'] == uuid_str
+    return False
+
+def do_generate_text(project):
+    str_id = uuid.uuid1().hex
+    print(str_id)
+    json_file = os.path.join(os.path.abspath('.'), 'tmp.json')
+    with default_write(json_file) as f:
+        data = {
+            'uuid': str_id,
+            'items': {
+                'dialogues': [
+                    {'identifier': 'notavailable_955d6768', 'language': 'chinese', 'new_text': '又一个[yel][dayofweek]{/color}流逝...'},
+                    {'identifier': 'notavailable_00afb9a6', 'language': 'chinese', 'new_text': '标签 notavailable:'},
+                ],
+                'strings': [
+                    {'identifier': 'Self-voicing disabled.', 'language': 'chinese', 'new_text': '已禁用自发声功能。'},
+                    {'identifier': 'selected', 'language': 'chinese', 'new_text': '已选'},
+                ]
+            }
+        }
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    # return False
+    code = project.launch('projz_inject_command', args=[json_file,
+                                                        f'--uuid {str_id}', '--language chinese', '--generate', '--all-strings'], wait=True)
+    if code == 0:
+        return check_ok_json(json_file, str_id)
+    return False
+
 def do_launch_test(project):
     str_id = uuid.uuid1().hex
     json_file = os.path.join(os.path.abspath('.'), 'tmp.json')
     code = project.launch('projz_inject_command', args=[json_file,
-                                           f'--uuid {str_id}',  '--test-only'], wait=True)
+                                                        f'--uuid {str_id}', '--test-only'], wait=True)
     if code == 0:
         try:
-            with open(json_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if data['ok']:
-                    return True
-        # except:
-        #     pass
+            return check_ok_json(json_file, str_id)
         finally:
             try:
                 os.remove(json_file)
@@ -151,6 +184,7 @@ def do_launch_test(project):
                 pass
     return False
 
+
 class Project:
 
     def __init__(self, project_path, executable_path, project_name):
@@ -158,20 +192,18 @@ class Project:
         self.executable_path = executable_path
         self.project_name = project_name
 
-
     def launch(self, cmd, args, wait=False):
         # Put together the basic command line.
         cmd_line = [self.executable_path, os.path.join(self.project_path, f'{self.project_name}.py'),
-               self.project_path, cmd, ' '.join(args)]
+                    self.project_path, cmd, ' '.join(args)]
         # print(' '.join(cmd_line))
         # return None
         p = subprocess.Popen(' '.join(cmd_line))
         if wait:
             return_code = p.wait()
-            print(return_code)
+            print(f'Subprocess returns code: {return_code}')
             return return_code
         return None
-
 
     @classmethod
     def from_dir(cls, project_path):
@@ -197,7 +229,8 @@ class Project:
 
 if __name__ == '__main__':
     p = Project.from_dir(r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc')
-    print(uuid.uuid1().hex)
-    print(do_launch_test(p))
+    # print(uuid.uuid1().hex)
+    # print(do_launch_test(p))
+    print(do_generate_text(p))
     # p.launch('projz_inject_command', args=[r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc\translation.json',
     #                                        f'--uuid {uuid.uuid1().hex}', '--language chinese', '--all-strings', '--count'], wait=True)
