@@ -93,12 +93,6 @@ def is_say_statement(t):
         return True
     return False
 
-def contains_say_statement(t):
-    if t is not None:
-        for i in t.block:
-            if isinstance(t, renpy.ast.Say):
-                return True
-    return False
 
 def get_dialogues_info(t, filter):
     if is_say_statement(t):
@@ -124,24 +118,24 @@ def count_missing(language, filter, min_priority, max_priority, common_only, say
     for filename in translate_list_files():
         for _, t in translator.file_translates[filename]:
             if (t.identifier, language) not in translator.language_translates and (hasattr(t, "alternate") and (t.alternate, language) not in translator.language_translates):
-                    ast = ast_of(
+                missing_translates += 1
+                ast = ast_of(
                         identifier=t.identifier.replace('.', '_'),
                         language=language,
                         filename=t.filename,
                         linenumber=t.linenumber,
                     )
-                    for i, n in enumerate(t.block):
-                        if say_only and not is_say_statement(n):
-                            continue
-                        what, who, code, type = get_dialogues_info(n, filter)
-                        missing_translates += 1
-                        ast['block'].append(block_of(
-                            type=type,
-                            what=what,
-                            who=who,
-                            code=code,
-                        ))
-                    missing_items.append(ast)
+                for i, n in enumerate(t.block):
+                    if say_only and not is_say_statement(n):
+                        continue
+                    what, who, code, type = get_dialogues_info(n, filter)
+                    ast['block'].append(block_of(
+                        type=type,
+                        what=what,
+                        who=who,
+                        code=code,
+                    ))
+                missing_items.append(ast)
 
     missing_strings = 0
 
@@ -161,13 +155,13 @@ def count_missing(language, filter, min_priority, max_priority, common_only, say
             continue
 
         missing_strings += 1
-        old, _, type = get_string_info(s, filter)
+        old, new, type = get_string_info(s, filter)
         missing_strings_items.append(ast_of(
             identifier=old,
             language=language,
             block=[block_of(
                 type=type,
-                what=old,
+                what=new,
             )],
             filename=elide_filename(s.filename),
             linenumber=s.line,
@@ -183,6 +177,13 @@ def count_missing(language, filter, min_priority, max_priority, common_only, say
         'strings': missing_strings_items,
     }
 
+# def get_ast_code(n, filter, new_t):
+#     if new_t is not None:
+#         for i in new_t.block:
+#             print(i.get_code(filter), i.linenumber, n.linenumber, n.get_code(filter))
+#             if not isinstance(i, renpy.ast.Say) and n.linenumber == i.linenumber:
+#                 return i.get_code(filter)
+#     return None
 
 def get_translation(filename, language, filter, translated_only, say_only):
     fn, common = shorten_filename(filename)
@@ -215,20 +216,33 @@ def get_translation(filename, language, filter, translated_only, say_only):
             filename=t.filename,
             linenumber=t.linenumber,
         )
-        for i, n in enumerate(t.block):
-            if say_only and not is_say_statement(n):
-                continue
-            what, who, code, type = get_dialogues_info(n, filter)
-            new_code = None
-            if is_say_statement(n):
-                new_code = get_text(translator.language_translates.get((origin_identifier, language), None))
-            ast['block'].append(block_of(
-                type=type,
-                what=what,
-                who=who,
-                code=code,
-                new_code=new_code
-            ))
+
+        if (origin_identifier, language) in translator.language_translates:
+            for i, n in enumerate(translator.language_translates.get((origin_identifier, language)).block):
+                if say_only and not is_say_statement(n):
+                    continue
+                what, who, code, type = get_dialogues_info(n, filter)
+                if is_say_statement(n):
+                    new_code = what
+                else:
+                    new_code = code
+                ast['block'].append(block_of(
+                    type=type,
+                    code=code,
+                    who=who,
+                    new_code=new_code
+                ))
+        else:
+            for i, n in enumerate(t.block):
+                if say_only and not is_say_statement(n):
+                    continue
+                what, who, code, type = get_dialogues_info(n, filter)
+                ast['block'].append(block_of(
+                    type=type,
+                    what=what,
+                    who=who,
+                    code=code,
+                ))
         item_list.append(ast)
     return item_list
 
@@ -269,12 +283,11 @@ def get_string_translation(language, filter, min_priority, max_priority, common_
     item_list = []
     for tlfn, sl in stringfiles.items():
         for s in sl:
-            old, new, type = get_string_info(s, filter)
-            if s.text in stl.translations:
-                new = stl.translations.get(old, None)
+            identifier, old, type = get_string_info(s, filter)
+            new = stl.translations.get(s.text, None)
 
             item_list.append(ast_of(
-                identifier=old,
+                identifier=identifier,
                 language=language,
                 block=[block_of(
                     type=type,
@@ -290,7 +303,27 @@ def get_string_translation(language, filter, min_priority, max_priority, common_
 def strip_line_breaks(text):
     return text.replace('\r\n', '').replace('\n', '')
 
-def generate_translation(projz_translator, filename, language, filter, translated_only):
+def get_ast_say(t):
+    if t is not None:
+        for i in t.block:
+            if isinstance(i, renpy.ast.Say):
+                return i
+    return None
+
+def get_say_text(t):
+    if t is not None:
+        for i in t['block']:
+            if i['type'] == 'Say':
+                return i['new_code']
+    return None
+
+# def get_new_code(t, raw_code):
+#     if t is not None:
+#         for i in t['block']:
+#             if i['type'] != 'Say' and i['code'] == raw_code:
+#                 return i['new_code']
+
+def generate_translation(projz_translator, filename, language, filter, translated_only, say_only):
     fn, common = shorten_filename(filename)
 
     # The common directory should not have dialogue in it.
@@ -312,28 +345,17 @@ def generate_translation(projz_translator, filename, language, filter, translate
     usage_count = 0
     for label, t in translator.file_translates[filename]:
         identifier = t.identifier.replace('.', '_')
-        if not translated_only:
-            if (t.identifier, language) in translator.language_translates:
-                continue
-
+        if (t.identifier, language) not in projz_translator:
             if hasattr(t, "alternate"):
-                if (t.alternate, language) in translator.language_translates:
-                    continue
-        new_text = None
-        if (identifier, raw_language) in projz_translator:
-            new_text = projz_translator[(identifier, raw_language)]
+                identifier = t.alternate
+                if (identifier, language) not in projz_translator:
+                    missing_count += 1
+                    if translated_only:
+                        continue
+                else:
+                    usage_count += 1
         else:
-            if hasattr(t, "alternate"):
-                if (t.alternate, language) in projz_translator:
-                    new_text = projz_translator[(t.alternate, raw_language)]
-        if new_text is None:
-            missing_count += 1
-            continue
-        usage_count += 1
-
-        # no line break
-        new_text = strip_line_breaks(new_text)
-
+            usage_count += 1
         f = open_tl_file(tl_filename)
 
         f.write(u"# {}:{}\n".format(t.filename, t.linenumber))
@@ -343,13 +365,35 @@ def generate_translation(projz_translator, filename, language, filter, translate
         for n in t.block:
             f.write(u"    # " + n.get_code() + "\n")
 
-        for n in t.block:
-            # Only renpy.ast.Say
-            if isinstance(n, renpy.ast.Say) and hasattr(n, 'what'):
-                tmp_n = copy(n)
-                setattr(tmp_n, 'what', new_text)
-                n = tmp_n
-            f.write(u"    " + n.get_code(filter) + "\n")
+        if not say_only and (identifier, language) in projz_translator:
+            for i, n in enumerate(projz_translator[(identifier, language)]['block']):
+                if n['type'] != 'Say':
+                    new_code = n.get('new_code', n.get('code', None))
+                    if new_code!=None:
+                        new_code = new_code.strip()
+                        f.write(u"    " + new_code + "\n")
+                else:
+                    new_text = n['new_code']
+                    if new_text is not None:
+                        # no line break
+                        new_text = strip_line_breaks(new_text)
+                        n = get_ast_say(t)
+                        if n is not None:
+                            n.what = new_text
+                            f.write(u"    " + n.get_code(filter) + "\n")
+        else:
+            for i, n in enumerate(t.block):
+                new_code = None
+                if is_say_statement(n):
+                    new_text = get_say_text(projz_translator.get((identifier, language), None))
+                    if new_text is not None:
+                        # no line break
+                        new_text = strip_line_breaks(new_text)
+                        n.what = new_text
+
+                if new_code is None:
+                    new_code = n.get_code(filter)
+                f.write(u"    " + new_code + "\n")
 
         f.write(u"\n")
     return {
@@ -357,15 +401,24 @@ def generate_translation(projz_translator, filename, language, filter, translate
         'usage_count':usage_count
     }
 
+def get_string_text(t):
+    if t is not None:
+        for i in t['block']:
+            if i['type'] == 'String':
+                return i['new_code']
+    return None
+
 def generate_string_translation(projz_translator, language, filter, min_priority, max_priority, common_only, translated_only): # @ReservedAssignment
     """
     Writes strings to the file.
     """
 
     if language == "None":
+        nullable_language = None
         stl = renpy.game.script.translator.strings[None] # @UndefinedVariable
     else:
         stl = renpy.game.script.translator.strings[language] # @UndefinedVariable
+        nullable_language = language
 
     # If this function changes, count_missing may also need to
     # change.
@@ -374,6 +427,8 @@ def generate_string_translation(projz_translator, language, filter, min_priority
 
     stringfiles = collections.defaultdict(list)
 
+    missing_count = 0
+    usage_count = 0
     for s in strings:
 
         tlfn = translation_filename(s)
@@ -381,9 +436,10 @@ def generate_string_translation(projz_translator, language, filter, min_priority
         if tlfn is None:
             continue
 
-        if not translated_only:
-            # Already seen.
-            if s.text in stl.translations:
+        if translated_only:
+            # Unseen.
+            if (s.text, nullable_language) not in projz_translator:
+                missing_count += 1
                 continue
 
         if language == "None" and tlfn == "common.rpy":
@@ -391,36 +447,28 @@ def generate_string_translation(projz_translator, language, filter, min_priority
 
         stringfiles[tlfn].append(s)
 
-    missing_count = 0
-    usage_count = 0
+
     for tlfn, sl in stringfiles.items():
+        tlfn = os.path.join(renpy.config.gamedir, renpy.config.tl_directory, language, tlfn)
+        f = open_tl_file(tlfn)
 
-        # sl.sort(key=lambda s : (s.filename, s.line))
+        f.write(u"translate {} strings:\n".format(language))
+        f.write(u"\n")
 
-        f = None
-        is_written = False
         for s in sl:
-            # text = filter(s.text)
-            key_text = quote_unicode(s.text)
-            if (key_text, language) not in projz_translator:
-                missing_count += 1
-                continue
-            usage_count += 1
-            if is_written:
+            old, new, _ = get_string_info(s, filter)
+            new_text = get_string_text(projz_translator.get((old, nullable_language), None))
+            if new_text is not None:
                 # no line break
-                new_text = strip_line_breaks(projz_translator[(key_text, language)])
-
-                f.write(u"    # {}:{}\n".format(elide_filename(s.filename), s.line))
-                f.write(u"    old \"{}\"\n".format(quote_unicode(s.text)))
-                f.write(u"    new \"{}\"\n".format(quote_unicode(new_text)))
-                f.write(u"\n")
+                new_text = strip_line_breaks(new_text)
+                usage_count += 1
             else:
-                tlfn = os.path.join(renpy.config.gamedir, renpy.config.tl_directory, language, tlfn)
-                f = open_tl_file(tlfn)
+                new_text = new
 
-                f.write(u"translate {} strings:\n".format(language))
-                f.write(u"\n")
-                is_written = True
+            f.write(u"    # {}:{}\n".format(elide_filename(s.filename), s.line))
+            f.write(u"    old \"{}\"\n".format(quote_unicode(old)))
+            f.write(u"    new \"{}\"\n".format(quote_unicode(new_text)))
+            f.write(u"\n")
 
     return {
         'missing_count': missing_count,
@@ -431,8 +479,8 @@ def generate(filter, max_priority):
     global proj_args
 
     json_data = read_json()
-    dialogues_translator = {(i['identifier'], i['language']): i['new_text'] for i in json_data['items']['dialogues']}
-    string_translator = {(i['identifier'], i['language']): i['new_text'] for i in json_data['items']['strings']}
+    dialogues_translator = {(i['identifier'], i['language']): i for i in json_data['items']['dialogues']}
+    string_translator = {(i['identifier'], i['language']): i for i in json_data['items']['strings']}
     # print(dialogues_translator)
     # print(string_translator)
 
@@ -440,7 +488,7 @@ def generate(filter, max_priority):
     string_count = collections.defaultdict(int)
     if not proj_args.strings_only:
         for filename in translate_list_files():
-            res = generate_translation(dialogues_translator, filename, proj_args.language, filter, proj_args.translated_only)
+            res = generate_translation(dialogues_translator, filename, proj_args.language, filter, proj_args.translated_only, proj_args.say_only)
             for k, v in res.items():
                 dialogues_count[k] += v
 
