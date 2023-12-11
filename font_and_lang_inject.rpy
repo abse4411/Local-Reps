@@ -73,7 +73,7 @@ screen projz_i18n_settings():
                     text _("button_text_font: [gui.button_text_font]")
                     text _("choice_button_text_font: [gui.choice_button_text_font]")
                     text _("language: [_preferences.language]")
-                    text _("This plugin is injected by the {a=https://github.com/abse4411/projz_renpy_translation}project{/a}.")
+                    text _("This plugin is injected by the {a=https://github.com/abse4411/projz_renpy_translation}projz_renpy_translation{/a}.")
                     hbox:
                         box_wrap True
                         vbox:
