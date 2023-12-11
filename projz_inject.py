@@ -314,7 +314,7 @@ def get_say_text(t):
     if t is not None:
         for i in t['block']:
             if i['type'] == 'Say':
-                return i['new_code']
+                return i.get('new_code', i.get('what', None))
     return None
 
 # def get_new_code(t, raw_code):
@@ -373,7 +373,7 @@ def generate_translation(projz_translator, filename, language, filter, translate
                         new_code = new_code.strip()
                         f.write(u"    " + new_code + "\n")
                 else:
-                    new_text = n['new_code']
+                    new_text = n.get('new_code', n.get('what', None))
                     if new_text is not None:
                         # no line break
                         new_text = strip_line_breaks(new_text)
@@ -405,7 +405,7 @@ def get_string_text(t):
     if t is not None:
         for i in t['block']:
             if i['type'] == 'String':
-                return i['new_code']
+                return i.get('new_code', None)
     return None
 
 def generate_string_translation(projz_translator, language, filter, min_priority, max_priority, common_only, translated_only): # @ReservedAssignment
@@ -436,10 +436,10 @@ def generate_string_translation(projz_translator, language, filter, min_priority
         if tlfn is None:
             continue
 
-        if translated_only:
-            # Unseen.
-            if (s.text, nullable_language) not in projz_translator:
-                missing_count += 1
+        # Unseen.
+        if (s.text, nullable_language) not in projz_translator:
+            missing_count += 1
+            if translated_only:
                 continue
 
         if language == "None" and tlfn == "common.rpy":
