@@ -151,19 +151,25 @@ def do_generate_text(project):
             'uuid': str_id,
             'items': {
                 'dialogues': [
-                    {'identifier': 'notavailable_955d6768', 'language': 'chinese', 'new_text': '又一个[yel][dayofweek]{/color}流逝...'},
-                    {'identifier': 'notavailable_00afb9a6', 'language': 'chinese', 'new_text': '标签 notavailable:'},
+                    {'identifier': 'notavailable_955d6768', 'language': 'chinese',
+                        'block': [
+                            {'code': 'voice "sound/voice/eri/eri_0001.o2gg"', 'new_cod1e': 'voice "AAA"', 'type': 'UserStatement'},
+                            {'code': 'voice "sound/voice/eri/eri_0002.ogg"', 'new_code': 'voice "BBB"', 'type': 'UserStatement'},
+                            {'new_code':'杀杀杀杀杀杀杀杀杀', 'type': 'Say'},
+                        ]
+                    },
+                    {'identifier': 'notavailable_466bcfc4', 'language': 'chinese', 'block': [{'new_code': '标签2 notavailable:', 'type': 'Say'}]},
                 ],
                 'strings': [
-                    {'identifier': 'Self-voicing disabled.', 'language': 'chinese', 'new_text': '已禁用自发声功能。'},
-                    {'identifier': 'selected', 'language': 'chinese', 'new_text': '已选'},
+                    {'identifier': 'Self-voicing disabled.', 'language': 'chinese', 'block': [{'new_code': '已禁用自发声功能。', 'type': 'String'}]},
+                    {'identifier': 'selected', 'language': 'chinese', 'block': [{'new_code': '已选', 'type': 'String'}]},
                 ]
             }
         }
         json.dump(data, f, ensure_ascii=False, indent=2)
     # return False
     code = project.launch('projz_inject_command', args=[json_file,
-                                                        f'--uuid {str_id}', '--language chinese', '--generate', '--all-strings'], wait=True)
+                                                        f'--uuid {str_id}', '--language chinese', '--generate', ' --say-only'], wait=True)
     if code == 0:
         return check_ok_json(json_file, str_id)
     return False
@@ -232,5 +238,4 @@ if __name__ == '__main__':
     # print(uuid.uuid1().hex)
     # print(do_launch_test(p))
     print(do_generate_text(p))
-    # p.launch('projz_inject_command', args=[r'D:\BaiduNetdiskDownload\New31\ScarletTrainer-0.2-pc\translation.json',
-    #                                        f'--uuid {uuid.uuid1().hex}', '--language chinese', '--all-strings', '--count'], wait=True)
+    # p.launch('projz_inject_command', args=[r'translation.json',f'--uuid {uuid.uuid1().hex}', '--language chinese', '--count', '--translated-only'], wait=True)
