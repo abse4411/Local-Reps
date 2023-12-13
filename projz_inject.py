@@ -292,7 +292,6 @@ def get_string_translation(language, filter, min_priority, max_priority, common_
 
     item_list = []
     for tlfn, sl in stringfiles.items():
-        print(tlfn)
         for s in sl:
             identifier, old, type = get_string_info(s, filter)
             new = stl.translations.get(s.text, None)
@@ -533,6 +532,7 @@ def write_json(items=None, message=None, ok=None):
     with open(proj_args.file, 'w', encoding='utf-8') as f:
         f.write(json.dumps({
             'uuid': proj_args.uuid,
+            'version': renpy.version,
             'args': str(proj_args),
             'timestamp': time.time(),
             'items': items,
@@ -612,9 +612,7 @@ def projz_inject_command():
         dialogues = []
         if not args.strings_only:
             for filename in translate_list_files():
-                print(filename)
                 dialogues += get_translation(filename, args.language, filter, args.translated_only, args.say_only)
-        print('=================')
         strings = get_string_translation(args.language, filter, args.min_priority, max_priority,
                                          args.common_only, args.translated_only)
         write_json(
