@@ -117,67 +117,73 @@ screen projz_i18n_settings():
         yalign 0.5
         xalign 0.5
         ysize 0.8
-        side "t b":
-            viewport id "projz_i18n":
-                draggable True
-                mousewheel True
-                xminimum 800
-                vbox:
-                    label "I18n Settings"
-                    text _("font_size: [_preferences.font_size:.1]")
-                    text _("font_line_spacing: [_preferences.font_line_spacing:.1]")
-                    text _("text_font: [gui.text_font]")
-                    text _("text_font: [gui.text_font]")
-                    text _("name_text_font: [gui.name_text_font]")
-                    text _("interface_text_font: [gui.interface_text_font]")
-                    text _("button_text_font: [gui.button_text_font]")
-                    text _("choice_button_text_font: [gui.choice_button_text_font]")
-                    text _("language: [_preferences.language]")
-                    text _("This plugin is injected by the {a=https://github.com/abse4411/projz_renpy_translation}projz_renpy_translation{/a}.")
-                    null height 10
-                    hbox:
-                        box_wrap True
-                        vbox:
-                            style_prefix "radio"
-                            label _("Language")
-                            textbutton "Default" action [Language(None)]
-                            for k,v in projz_languages.items():
-                                textbutton v[0] text_font v[1] action Language(k)
-                        ################### Make font vars dynamic by our implementation ###################
-                        vbox:
-                            style_prefix "radio"
-                            label _("Font")
-                            textbutton "Default" action ProjzDefaultFontAction()
-                            for f in projz_fonts:
-                                textbutton f:
-                                    text_font f
-                                    action ProjzFontAction(f)
-                        ####################################################################################
-                        
-                        ################### Make font vars dynamic since Ren’Py 6.99.14 ###################
-                        # vbox:
-                        #     style_prefix "radio"
-                        #     label _("Font")
-                        #     textbutton "Default" action [gui.SetPreference(projz_gui_vars[0], persistent.projz_gui_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[1], persistent.projz_gui_name_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[2], persistent.projz_gui_interface_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[3], persistent.projz_gui_button_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[4], persistent.projz_gui_choice_button_text_font, rebuild=True)]
-                        #     for f in projz_fonts:
-                        #         textbutton f:
-                        #             text_font f
-                        #             action [gui.SetPreference(projz_gui_vars[0], f, rebuild=False), gui.SetPreference(projz_gui_vars[1], f, rebuild=False), gui.SetPreference(projz_gui_vars[2], f, rebuild=False), gui.SetPreference(projz_gui_vars[3], f, rebuild=False), gui.SetPreference(projz_gui_vars[4], f, rebuild=True)]
-                        ###################################################################################
+        side "c b":
+            side "c r b":
+                viewport id "projz_i18n_vp":
+                    xfill False
+                    draggable True
+                    mousewheel True
+                    vbox:
+                        xfill False
+                        label "I18n settings"
                         null height 10
                         hbox:
-                            style_prefix "slider"
                             box_wrap True
                             vbox:
-                                label "Font size:"
-                                bar value Preference("font size")
-                                textbutton "Reset font size" action Preference("font size", 1.0)
+                                style_prefix "radio"
+                                label _("Language")
+                                textbutton "Default" action [Language(None)]
+                                for k,v in projz_languages.items():
+                                    textbutton v[0] text_font v[1] action Language(k)
+                            ################### Make font vars dynamic by our implementation ###################
                             vbox:
-                                label "Font line spacing:"
-                                bar value Preference("font line spacing")
-                                textbutton "Reset font size" action Preference("font line spacing", 1.0)
-                    null height 40
-
+                                style_prefix "radio"
+                                label _("Font")
+                                textbutton "Default" action ProjzDefaultFontAction()
+                                for f in projz_fonts:
+                                    textbutton f:
+                                        text_font f
+                                        action ProjzFontAction(f)
+                            ####################################################################################
+                            
+                            ################### Make font vars dynamic since Ren’Py 6.99.14 ###################
+                            # vbox:
+                            #     style_prefix "radio"
+                            #     label _("Font")
+                            #     textbutton "Default" action [gui.SetPreference(projz_gui_vars[0], persistent.projz_gui_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[1], persistent.projz_gui_name_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[2], persistent.projz_gui_interface_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[3], persistent.projz_gui_button_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[4], persistent.projz_gui_choice_button_text_font, rebuild=True)]
+                            #     for f in projz_fonts:
+                            #         textbutton f:
+                            #             text_font f
+                            #             action [gui.SetPreference(projz_gui_vars[0], f, rebuild=False), gui.SetPreference(projz_gui_vars[1], f, rebuild=False), gui.SetPreference(projz_gui_vars[2], f, rebuild=False), gui.SetPreference(projz_gui_vars[3], f, rebuild=False), gui.SetPreference(projz_gui_vars[4], f, rebuild=True)]
+                            ###################################################################################
+                            null height 10
+                            hbox:
+                                style_prefix "slider"
+                                box_wrap True
+                                vbox:
+                                    label "Font size:"
+                                    bar value Preference("font size")
+                                    textbutton "Reset font size" action Preference("font size", 1.0)
+                                vbox:
+                                    label "Font line spacing:"
+                                    bar value Preference("font line spacing")
+                                    textbutton "Reset line spacing" action Preference("font line spacing", 1.0)
+                        null height 10
+                        label "Watch"
+                        text _("font_size: [_preferences.font_size:.1]")
+                        text _("font_line_spacing: [_preferences.font_line_spacing:.1]")
+                        text _("text_font: [gui.text_font]")
+                        text _("text_font: [gui.text_font]")
+                        text _("name_text_font: [gui.name_text_font]")
+                        text _("interface_text_font: [gui.interface_text_font]")
+                        text _("button_text_font: [gui.button_text_font]")
+                        text _("choice_button_text_font: [gui.choice_button_text_font]")
+                        text _("language: [_preferences.language]")
+                        null height 10
+                        text _("This plugin is injected by the {a=https://github.com/abse4411/projz_renpy_translation}projz_renpy_translation{/a}.") xalign 0.5
+                        null height 40
+                vbar value YScrollValue("projz_i18n_vp")
+                bar value XScrollValue("projz_i18n_vp")   
             textbutton _("Hide"):
                 xalign 1.0
                 yalign 1.0
