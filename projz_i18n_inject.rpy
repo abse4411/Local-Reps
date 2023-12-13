@@ -143,13 +143,13 @@ screen projz_i18n_settings():
                     style_prefix "slider"
                     box_wrap True
                     vbox:
-                        label "Font size:"
+                        label "Font size"
                         bar value Preference("font size")
-                        textbutton "Reset font size" action Preference("font size", 1.0)
+                        textbutton "Reset" action Preference("font size", 1.0)
                     vbox:
-                        label "Font line spacing:"
+                        label "Font line spacing"
                         bar value Preference("font line spacing")
-                        textbutton "Reset line spacing" action Preference("font line spacing", 1.0)
+                        textbutton "Reset" action Preference("font line spacing", 1.0)
             null height 10
             label "Watch"
             text _("font_size: [_preferences.font_size:.1]")
@@ -161,6 +161,9 @@ screen projz_i18n_settings():
             text _("button_text_font: [gui.button_text_font]")
             text _("choice_button_text_font: [gui.choice_button_text_font]")
             text _("language: [_preferences.language]")
+            null height 10
+            label _("Note that")
+            text _("If there exists the font configuration in /game/tl/language/style.rpy, it will disable our font setting because of its higher priority. For more infomation, please see {a=https://www.renpy.org/doc/html/translation.html#style-translations}this{/a}.")
             null height 10
             text _("This plugin is injected by the {a=https://github.com/abse4411/projz_renpy_translation}projz_renpy_translation{/a}.") xalign 1.0
             null height 60
