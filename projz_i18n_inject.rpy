@@ -53,6 +53,18 @@ define gui.button_text_font = get_selected_font(projz_gui_vars[3], gui.button_te
 define gui.choice_button_text_font = get_selected_font(projz_gui_vars[4], gui.choice_button_text_font)
 ####################################################################################
 
+# save default fonts
+if projz_get(projz_gui_vars[0], None) is None:
+    $ projz_set(projz_gui_vars[0], gui.text_font)
+if projz_get(projz_gui_vars[1], None) is None:
+    $ projz_set(projz_gui_vars[1], gui.name_text_font)
+if projz_get(projz_gui_vars[2], None) is None:
+    $ projz_set(projz_gui_vars[2], gui.interface_text_font)
+if projz_get(projz_gui_vars[3], None) is None:
+    $ projz_set(projz_gui_vars[3], gui.button_text_font)
+if projz_get(projz_gui_vars[4], None) is None:
+    $ projz_set(projz_gui_vars[4], gui.choice_button_text_font)
+
 define projz_languages = {"korean": ("한국어", "SourceHanSansLite.ttf"), "japanese": ("日本語","SourceHanSansLite.ttf"), "french":("Русский","DejaVuSans.ttf"), "chinese": ("简体中文","SourceHanSansLite.ttf")}
 define projz_fonts = ["DejaVuSans.ttf", "KMKDSP.ttf", "SourceHanSansLite.ttf"]
 
@@ -95,17 +107,6 @@ init python:
 screen projz_i18n_settings():
     python:
         from store import persistent
-        # save default fonts
-        if projz_get(projz_gui_vars[0], None) is None:
-            projz_set(projz_gui_vars[0], gui.text_font)
-        if projz_get(projz_gui_vars[1], None) is None:
-            projz_set(projz_gui_vars[1], gui.name_text_font)
-        if projz_get(projz_gui_vars[2], None) is None:
-            projz_set(projz_gui_vars[2], gui.interface_text_font)
-        if projz_get(projz_gui_vars[3], None) is None:
-            projz_set(projz_gui_vars[3], gui.button_text_font)
-        if projz_get(projz_gui_vars[4], None) is None:
-            projz_set(projz_gui_vars[4], gui.choice_button_text_font)
     tag menu
     use game_menu(_("I18n settings"), scroll="viewport"):
         vbox:
