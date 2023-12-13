@@ -579,6 +579,11 @@ def projz_inject_command():
     global proj_args
     proj_args = args
 
+    if args.language == "rot13":
+        args.rot13 = True
+    elif args.language == "piglatin":
+        args.piglatin = True
+
     if args.test_only:
         write_json(ok=True)
         return False
