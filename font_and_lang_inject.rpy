@@ -15,14 +15,20 @@
 init -1:
     python hide:
         config.developer = True
+
 # Note: Run after define statements of font in gui.rpy
 init offset = 999999
+define projz_gui_vars = ["projz_gui_text_font","projz_gui_name_text_font","projz_gui_interface_text_font","projz_gui_button_text_font","projz_gui_choice_button_text_font"]
 # Make font vars dynamic since Ren’Py 6.99.14
-define gui.text_font = gui.preference("projz_gui_text_font", gui.text_font)
-define gui.name_text_font = gui.preference("projz_gui_name_text_font", gui.name_text_font)
-define gui.interface_text_font = gui.preference("projz_gui_interface_text_font", gui.interface_text_font)
-define gui.button_text_font = gui.preference("projz_gui_button_text_font", gui.button_text_font)
-define gui.choice_button_text_font = gui.preference("projz_gui_choice_button_text_font", gui.choice_button_text_font)
+define gui.text_font = gui.preference(projz_gui_vars[0], gui.text_font)
+define gui.name_text_font = gui.preference(projz_gui_vars[1], gui.name_text_font)
+define gui.interface_text_font = gui.preference(projz_gui_vars[2], gui.interface_text_font)
+define gui.button_text_font = gui.preference(projz_gui_vars[3], gui.button_text_font)
+define gui.choice_button_text_font = gui.preference(projz_gui_vars[4], gui.choice_button_text_font)
+
+define projz_languages = {"korean": ("한국어", "SourceHanSansLite.ttf"), "japanese": ("日本語","SourceHanSansLite.ttf"), "french":("Русский","DejaVuSans.ttf"), "chinese": ("简体中文","SourceHanSansLite.ttf")}
+define projz_fonts = ["DejaVuSans.ttf", "KMKDSP.ttf", "SourceHanSansLite.ttf"]
+
 
 init python:
     def projz_change_font(font):
@@ -78,19 +84,38 @@ screen projz_i18n_settings():
                         box_wrap True
                         vbox:
                             style_prefix "radio"
+                            label _("Font")
+                            textbutton "DejaVuSans.ttf" text_font "DejaVuSans.ttf" action [SetPreference]
+                            textbutton "KMKDSP.ttf" text_font "KMKDSP.ttf" action
+                        vbox:
+                            style_prefix "radio"
                             label _("Language")
-                            textbutton "Default" text_font "DejaVuSans.ttf" action [Language(None)]
-                            textbutton "한국어" text_font "SourceHanSansLite.ttf" action [Language("korean")]
-                            textbutton "Русский" text_font "DejaVuSans.ttf" action [Language("french")]
-                            textbutton "日本語" text_font "SourceHanSansLite.ttf" action [Language("japanese")]
-                            textbutton "简体中文" text_font "SourceHanSansLite.ttf" action [Language("chinese")]
+                            textbutton "Default" action [Language(None)]
+                            for k,v in projz_languages.items():
+                                textbutton v[0] text_font v[1] action Language(k)
                         vbox:
                             style_prefix "radio"
                             label _("Font")
-                            textbutton "Default" action [gui.SetPreference("projz_gui_text_font", persistent.projz_gui_text_font, rebuild=False), gui.SetPreference("projz_gui_name_text_font", persistent.projz_gui_name_text_font, rebuild=False), gui.SetPreference("projz_gui_interface_text_font", persistent.projz_gui_interface_text_font, rebuild=False), gui.SetPreference("projz_gui_button_text_font", persistent.projz_gui_button_text_font, rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", persistent.projz_gui_choice_button_text_font, rebuild=True)]
-                            textbutton "DejaVuSans.ttf" text_font "DejaVuSans.ttf" action [Function(projz_change_font, "DejaVuSans.ttf"), gui.SetPreference("projz_gui_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "DejaVuSans.ttf", rebuild=True)]
-                            textbutton "KMKDSP.ttf" text_font "KMKDSP.ttf" action [Function(projz_change_font, "KMKDSP.ttf"), gui.SetPreference("projz_gui_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "KMKDSP.ttf", rebuild=True)]
-                            textbutton "SourceHanSansLite.ttf" text_font "SourceHanSansLite.ttf" action [Function(projz_change_font, "SourceHanSansLite.ttf"), gui.SetPreference("projz_gui_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "SourceHanSansLite.ttf", rebuild=True)]
+                            textbutton "Default" action [gui.SetPreference(projz_gui_vars[0], persistent.projz_gui_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[1], persistent.projz_gui_name_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[2], persistent.projz_gui_interface_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[3], persistent.projz_gui_button_text_font, rebuild=False), gui.SetPreference(projz_gui_vars[4], persistent.projz_gui_choice_button_text_font, rebuild=True)]
+                            for f in projz_fonts:
+                                textbutton f:
+                                    text_font f
+                                    action [gui.SetPreference(projz_gui_vars[0], f, rebuild=False), gui.SetPreference(projz_gui_vars[1], f, rebuild=False), gui.SetPreference(projz_gui_vars[2], f, rebuild=False), gui.SetPreference(projz_gui_vars[3], f, rebuild=False), gui.SetPreference(projz_gui_vars[4], f, rebuild=True)]
+                        # vbox:
+                        #     style_prefix "radio"
+                        #     label _("Language")
+                        #     textbutton "Default" action [Language(None)]
+                        #     textbutton "한국어" text_font "SourceHanSansLite.ttf" action [Language("korean")]
+                        #     textbutton "Русский" text_font "DejaVuSans.ttf" action [Language("french")]
+                        #     textbutton "日本語" text_font "SourceHanSansLite.ttf" action [Language("japanese")]
+                        #     textbutton "简体中文" text_font "SourceHanSansLite.ttf" action [Language("chinese")]
+                        # vbox:
+                        #     style_prefix "radio"
+                        #     label _("Font")
+                        #     textbutton "Default" action [gui.SetPreference("projz_gui_text_font", persistent.projz_gui_text_font, rebuild=False), gui.SetPreference("projz_gui_name_text_font", persistent.projz_gui_name_text_font, rebuild=False), gui.SetPreference("projz_gui_interface_text_font", persistent.projz_gui_interface_text_font, rebuild=False), gui.SetPreference("projz_gui_button_text_font", persistent.projz_gui_button_text_font, rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", persistent.projz_gui_choice_button_text_font, rebuild=True)]
+                        #     textbutton "DejaVuSans.ttf" text_font "DejaVuSans.ttf" action [Function(projz_change_font, "DejaVuSans.ttf"), gui.SetPreference("projz_gui_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "DejaVuSans.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "DejaVuSans.ttf", rebuild=True)]
+                        #     textbutton "KMKDSP.ttf" text_font "KMKDSP.ttf" action [Function(projz_change_font, "KMKDSP.ttf"), gui.SetPreference("projz_gui_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "KMKDSP.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "KMKDSP.ttf", rebuild=True)]
+                        #     textbutton "SourceHanSansLite.ttf" text_font "SourceHanSansLite.ttf" action [Function(projz_change_font, "SourceHanSansLite.ttf"), gui.SetPreference("projz_gui_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_name_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_interface_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_button_text_font", "SourceHanSansLite.ttf", rebuild=False), gui.SetPreference("projz_gui_choice_button_text_font", "SourceHanSansLite.ttf", rebuild=True)]
             textbutton _("Hide"):
                 xalign 1.0
                 yalign 1.0
