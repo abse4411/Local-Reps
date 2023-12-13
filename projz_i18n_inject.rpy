@@ -105,8 +105,6 @@ init python:
     config.keymap['projz_show_i18n_settings'] = ['ctrl_K_i']
 
 screen projz_i18n_settings():
-    python:
-        from store import persistent
     tag menu
     use game_menu(_("I18n settings"), scroll="viewport"):
         vbox:
